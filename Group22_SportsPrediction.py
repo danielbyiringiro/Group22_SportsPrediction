@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 
 import pandas as pd
@@ -19,14 +19,14 @@ from xgboost import XGBRegressor
 from matplotlib import pyplot as plt
 
 
-# In[2]:
+# In[4]:
 
 
 dataset = pd.read_csv('players_21.csv')
 dataset.head()
 
 
-# In[3]:
+# In[5]:
 
 
 dataset.info()
@@ -39,7 +39,7 @@ categorical_features = dataset.select_dtypes(include=['object'])
 numerical_features.head()
 
 
-# In[4]:
+# In[6]:
 
 
 # drop columns with more than 30% missing values
@@ -48,7 +48,7 @@ numerical_features = numerical_features.dropna(thresh=0.7*len(numerical_features
 numerical_features.head()
 
 
-# In[5]:
+# In[7]:
 
 
 # dealing with categorical features
@@ -56,7 +56,7 @@ numerical_features.head()
 categorical_features.head()
 
 
-# In[6]:
+# In[8]:
 
 
 categorical_features.info()
@@ -67,7 +67,7 @@ categorical_features = categorical_features.dropna(thresh=0.7*len(categorical_fe
 categorical_features.head()
 
 
-# In[7]:
+# In[9]:
 
 
 # convert dob and club_joined to age and years in club respectively
@@ -82,7 +82,7 @@ categorical_features = categorical_features.drop(['dob', 'club_joined'], axis=1)
 categorical_features.head()
 
 
-# In[8]:
+# In[10]:
 
 
 #dropping columns with > 90% unique values since unique categorical values do not provide any pattern or trends the model can learn from
@@ -92,7 +92,7 @@ categorical_features = categorical_features.drop(mostly_unique, axis=1)
 categorical_features.head()
 
 
-# In[9]:
+# In[11]:
 
 
 # converting columns with categorical values like 89 + 3 to numerical values like 92
@@ -106,7 +106,7 @@ for col in categorical_features.columns[9:36]:
 categorical_features.head()
 
 
-# In[10]:
+# In[12]:
 
 
 # since we have the club_name and nationality of a player we can remove the the club_logo_url, club_flag_url and national_flag_url columns
@@ -115,7 +115,7 @@ categorical_features = categorical_features.drop(['club_logo_url', 'club_flag_ur
 categorical_features.head()
 
 
-# In[11]:
+# In[13]:
 
 
 # convert the remaining categorical features to numerical by factorizing
@@ -130,7 +130,7 @@ for col in categorical_features.select_dtypes(include=['object']).columns:
 categorical_features.head()
 
 
-# In[12]:
+# In[14]:
 
 
 # combine the numerical and categorical features
@@ -139,7 +139,7 @@ dataset = pd.concat([numerical_features, categorical_features], axis=1)
 dataset.head()
 
 
-# In[13]:
+# In[15]:
 
 
 # drop age in the dataset since we have cat_age (2023 - dob)
@@ -147,7 +147,7 @@ dataset.head()
 dataset = dataset.drop('age', axis=1)
 
 
-# In[14]:
+# In[16]:
 
 
 # measure feature importance
@@ -156,7 +156,7 @@ X = dataset.drop(['overall'], axis=1)
 y = dataset['overall']
 
 
-# In[15]:
+# In[17]:
 
 
 # check whether a dataset with dropped values is better than one with imputed values 
@@ -168,7 +168,7 @@ y_dropped = y[X_dropped.index]
 X_dropped.shape, y_dropped.shape
 
 
-# In[16]:
+# In[18]:
 
 
 X_imputed = X.fillna(X.mean())
@@ -177,7 +177,7 @@ y_imputed = y
 X_imputed.shape, y_imputed.shape
 
 
-# In[17]:
+# In[19]:
 
 
 droppedRegressor = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -187,7 +187,7 @@ imputedRegressor = RandomForestRegressor(n_estimators=100, random_state=42)
 imputedRegressor.fit(X_imputed, y_imputed)
 
 
-# In[18]:
+# In[20]:
 
 
 dropped_feature_importances = pd.DataFrame(droppedRegressor.feature_importances_, index=X_dropped.columns, columns=['importance']).sort_values('importance', ascending=False)
@@ -195,7 +195,7 @@ dropped_feature_importances *= 100
 dropped_feature_importances.head()
 
 
-# In[19]:
+# In[21]:
 
 
 imputed_feature_importances = pd.DataFrame(imputedRegressor.feature_importances_, index=X_imputed.columns, columns=['importance']).sort_values('importance', ascending=False)
@@ -203,7 +203,7 @@ imputed_feature_importances *= 100
 imputed_feature_importances.head()
 
 
-# In[20]:
+# In[22]:
 
 
 # move forward with the imputed dataset since it is more distributed in terms of feature importance
@@ -219,13 +219,13 @@ X = X_imputed[X]
 X.head()
 
 
-# In[21]:
+# In[23]:
 
 
 X.describe()
 
 
-# In[22]:
+# In[24]:
 
 
 scaler = StandardScaler()
@@ -238,14 +238,14 @@ X = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
 X.describe()
 
 
-# In[23]:
+# In[25]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 X_train.shape, y_train.shape, X_test.shape, y_test.shape
 
 
-# In[24]:
+# In[26]:
 
 
 # training the models with 16 different regression models and comparing their performance
@@ -281,7 +281,7 @@ for name, model in regression_models.items():
     r2[name] = r2_score(y_test, y_pred)
 
 
-# In[25]:
+# In[27]:
 
 
 accuracy = pd.DataFrame([mse, mae, r2], index=['MSE', 'MAE', 'R2']).T
@@ -289,7 +289,7 @@ accuracy = accuracy.sort_values('R2', ascending=False)
 accuracy
 
 
-# In[26]:
+# In[28]:
 
 
 # plot the accuracy of the models
@@ -303,14 +303,14 @@ plt.legend()
 plt.show()
 
 
-# In[27]:
+# In[29]:
 
 
 # Random forest has the lowest mean absolute error and the highest r2 score
 # so we wil go with Random Forest
 
 
-# In[28]:
+# In[ ]:
 
 
 # hyperparameter tuning
@@ -337,28 +337,28 @@ grid_search.fit(X, y)
 grid_search.best_params_
 
 
-# In[29]:
+# In[31]:
 
 
 model_with_best_params = RandomForestRegressor(max_depth=20, max_features='sqrt', min_samples_leaf=1, min_samples_split=2, n_estimators=500, n_jobs=-1, random_state=42)
 model_with_best_params.fit(X, y)
 
 
-# In[30]:
+# In[32]:
 
 
 test_data = pd.read_csv('players_22.csv')
 test_data.head()
 
 
-# In[31]:
+# In[33]:
 
 
 test_data['cat_age'] = 2023 - pd.to_datetime(test_data.dob).dt.year
 test_data.cat_age.head()
 
 
-# In[32]:
+# In[34]:
 
 
 needed_columns = ['value_eur','release_clause_eur','cat_age','potential','movement_reactions']
@@ -366,20 +366,20 @@ test_features = test_data[needed_columns]
 test_features.head()
 
 
-# In[33]:
+# In[35]:
 
 
 test_features.info()
 
 
-# In[34]:
+# In[36]:
 
 
 test_overall = test_data.overall
 test_overall.head()
 
 
-# In[35]:
+# In[37]:
 
 
 # drop missing features in test features
@@ -387,13 +387,13 @@ test_overall.head()
 test_features = test_features.fillna(test_features.mean())
 
 
-# In[36]:
+# In[38]:
 
 
 test_features.head()
 
 
-# In[37]:
+# In[39]:
 
 
 with open('scaler_model.pkl', 'rb') as file:
@@ -401,13 +401,13 @@ with open('scaler_model.pkl', 'rb') as file:
 test_features = loaded_scaler.transform(test_features)
 
 
-# In[38]:
+# In[40]:
 
 
 y_pred = model_with_best_params.predict(test_features)
 
 
-# In[39]:
+# In[41]:
 
 
 mae = mean_absolute_error(test_overall, y_pred)
@@ -419,7 +419,7 @@ print(f'R2: {r2}')
 print(f'MSE: {mse}')
 
 
-# In[40]:
+# In[42]:
 
 
 # plot the actual and predicted values
@@ -440,7 +440,7 @@ comparison = pd.DataFrame({'Actual': test_overall, 'Predicted': y_pred})
 comparison.tail(10)
 
 
-# In[42]:
+# In[44]:
 
 
 # its better at predicting higher overall players than lower overall players
@@ -452,4 +452,28 @@ import pickle
 with open('model.pkl', 'wb') as f:
     pickle.dump(model_with_best_params, f)
 
+
+# In[47]:
+
+
+import zipfile
+
+zip_filename = "model.zip"
+model_filename = "model.pkl"
+
+with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as archive:
+    archive.write(model_filename)
+
+print(f"{model_filename} has been zipped to {zip_filename}")
+
+
+# In[ ]:
+
+
+import os
+file_path = 'model.pkl'
+
+if os.path.exists(file_path):
+    os.remove(file_path)
+    print(f"{file_path} has been removed")
 
